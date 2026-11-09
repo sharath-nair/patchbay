@@ -23,5 +23,5 @@ A node-based AI workflow builder. Wire up triggers, prompts, routers and outputs
 - [x] M3: Schema-driven property editor
 - [x] M4: Undo/redo history
 - [x] M5: Simulated execution engine
-- [ ] M6: Persistence, dashboard, import/export
+- [x] M6: Persistence, dashboard, import/export
 - [ ] M7: Polish, CI, deploy

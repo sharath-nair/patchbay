@@ -26,10 +26,18 @@ interface WorkflowState extends Snapshot {
   future: Snapshot[];
   /** Bumped on undo/redo so forms bound to node data know to reset. */
   revision: number;
+  name: string;
+  /** Id of the saved workflow currently loaded into the store, or null. */
+  workflowId: string | null;
   isRunning: boolean;
   /** Human-readable result of the last run (error message, or null). */
   runError: string | null;
   setGraph: (nodes: WorkflowNode[], edges: WorkflowEdge[]) => void;
+  /** Replace the whole graph as an undoable step (used by import). */
+  replaceGraph: (nodes: WorkflowNode[], edges: WorkflowEdge[]) => void;
+  setName: (name: string) => void;
+  /** Load a saved workflow: replaces graph and name, and clears undo history. */
+  loadWorkflow: (id: string, name: string, nodes: WorkflowNode[], edges: WorkflowEdge[]) => void;
   onNodesChange: (changes: NodeChange<WorkflowNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<WorkflowEdge>[]) => void;
   onConnect: (connection: Connection) => void;
@@ -115,8 +123,19 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => {
     past: [],
     future: [],
     revision: 0,
+    name: "Untitled workflow",
+    workflowId: null,
     isRunning: false,
     runError: null,
+    setName: (name) => set({ name }),
+    loadWorkflow: (id, name, nodes, edges) => {
+      lastKey = null;
+      set({ workflowId: id, name, nodes, edges, past: [], future: [], runError: null, revision: get().revision + 1 });
+    },
+    replaceGraph: (nodes, edges) => {
+      record();
+      set({ nodes, edges });
+    },
     setGraph: (nodes, edges) => {
       lastKey = null;
       set({ nodes, edges, past: [], future: [], revision: get().revision + 1 });
