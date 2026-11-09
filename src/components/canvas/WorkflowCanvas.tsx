@@ -15,6 +15,7 @@ function Canvas() {
   const onEdgesChange = useWorkflowStore((s) => s.onEdgesChange);
   const onConnect = useWorkflowStore((s) => s.onConnect);
   const addNode = useWorkflowStore((s) => s.addNode);
+  const commit = useWorkflowStore((s) => s.commit);
   const { screenToFlowPosition } = useReactFlow();
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -40,6 +41,7 @@ function Canvas() {
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
+      onNodeDragStart={commit}
       onDragOver={onDragOver}
       onDrop={onDrop}
       fitView

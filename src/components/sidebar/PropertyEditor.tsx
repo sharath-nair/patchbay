@@ -86,6 +86,7 @@ function NodeForm({ node }: { node: WorkflowNode }) {
 
 export function PropertyEditor() {
   const node = useWorkflowStore(selectSelectedNode);
+  const revision = useWorkflowStore((s) => s.revision);
 
   return (
     <aside className="bg-background w-72 shrink-0 overflow-y-auto border-l p-4" aria-label="Properties">
@@ -93,8 +94,8 @@ export function PropertyEditor() {
       {node?.type ? (
         <>
           <p className="mb-4 text-sm font-medium">{nodeRegistry[node.type].label}</p>
-          {/* key remounts the form when selection changes so defaults reset */}
-          <NodeForm key={node.id} node={node} />
+          {/* key remounts the form when the selection changes or after undo/redo, so defaults reset */}
+          <NodeForm key={`${node.id}:${revision}`} node={node} />
         </>
       ) : (
         <p className="text-muted-foreground text-sm">Select a node to edit its settings.</p>
