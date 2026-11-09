@@ -44,6 +44,7 @@ function Canvas() {
       onNodeDragStart={commit}
       onDragOver={onDragOver}
       onDrop={onDrop}
+      colorMode="system"
       fitView
       fitViewOptions={{ padding: 0.2 }}
       deleteKeyCode={["Backspace", "Delete"]}

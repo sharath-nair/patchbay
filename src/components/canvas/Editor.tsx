@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Download, FileUp, Play, Redo2, RotateCcw, Square, Undo2 } from "lucide-react";
+import { CommandPalette } from "@/components/canvas/CommandPalette";
 import { WorkflowCanvas } from "@/components/canvas/WorkflowCanvas";
 import { useAutosave } from "@/components/canvas/useAutosave";
 import { useUndoRedoShortcuts } from "@/components/canvas/useUndoRedoShortcuts";
@@ -66,6 +67,7 @@ export function Editor({ id }: { id: string }) {
 
   return (
     <div className="flex h-screen flex-col">
+      <CommandPalette />
       <header className="flex h-12 shrink-0 items-center gap-3 border-b px-4 text-sm">
         <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
           ← Dashboard
