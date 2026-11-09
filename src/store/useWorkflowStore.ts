@@ -9,7 +9,9 @@ import {
   type XYPosition,
 } from "@xyflow/react";
 import { nodeRegistry } from "@/components/nodes/registry";
-import type { NodeKind, WorkflowEdge, WorkflowNode } from "@/types/workflow";
+import type { ExecEvent } from "@/types/execution";
+import type { NodeKind, RunStatus, WorkflowEdge, WorkflowNode } from "@/types/workflow";
+import { runWorkflow } from "@/utils/executionEngine";
 
 /** Max undo steps kept; older entries are dropped so memory stays bounded. */
 export const HISTORY_LIMIT = 20;
@@ -24,6 +26,9 @@ interface WorkflowState extends Snapshot {
   future: Snapshot[];
   /** Bumped on undo/redo so forms bound to node data know to reset. */
   revision: number;
+  isRunning: boolean;
+  /** Human-readable result of the last run (error message, or null). */
+  runError: string | null;
   setGraph: (nodes: WorkflowNode[], edges: WorkflowEdge[]) => void;
   onNodesChange: (changes: NodeChange<WorkflowNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<WorkflowEdge>[]) => void;
@@ -32,7 +37,12 @@ interface WorkflowState extends Snapshot {
   /** Patch one node's data. Only that node's object identity changes, so only its subscribers re-render. */
   updateNodeData: (id: string, patch: Partial<WorkflowNode["data"]>) => void;
   /** Update node/edge run state without touching history (used by the execution engine). */
-  patchRuntime: (nodeStatus?: Record<string, Partial<WorkflowNode["data"]>>, edgeStatus?: Record<string, WorkflowEdge["data"]>) => void;
+  patchRuntime: (nodeStatus?: Record<string, Partial<WorkflowNode["data"]>>, edgeStatus?: Record<string, RunStatus>) => void;
+  /** Simulate running the workflow, animating node and edge state as it goes. */
+  run: (options?: { speed?: number }) => Promise<void>;
+  stop: () => void;
+  /** Clear all run state (statuses, outputs, edge animation) without touching history. */
+  resetRun: () => void;
   /** Explicitly snapshot the current graph as an undo step (e.g. at drag start). */
   commit: () => void;
   undo: () => void;
@@ -56,6 +66,15 @@ export function createNode(kind: NodeKind, position: XYPosition, id?: string): W
     data: { ...nodeRegistry[kind].defaults, status: "idle" } as WorkflowNode["data"],
   };
 }
+
+const EDGE_CLASS: Record<RunStatus, string | undefined> = {
+  idle: undefined,
+  running: "edge-running",
+  success: "edge-success",
+  error: "edge-error",
+};
+
+let abortController: AbortController | null = null;
 
 export const useWorkflowStore = create<WorkflowState>((set, get) => {
   // Coalescing state lives outside React state: bursts of the same kind of change (typing in one
@@ -96,6 +115,8 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => {
     past: [],
     future: [],
     revision: 0,
+    isRunning: false,
+    runError: null,
     setGraph: (nodes, edges) => {
       lastKey = null;
       set({ nodes, edges, past: [], future: [], revision: get().revision + 1 });
@@ -125,8 +146,56 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => {
     patchRuntime: (nodeStatus = {}, edgeStatus = {}) =>
       set({
         nodes: get().nodes.map((n) => (nodeStatus[n.id] ? { ...n, data: { ...n.data, ...nodeStatus[n.id] } } : n)),
-        edges: get().edges.map((e) => (edgeStatus[e.id] ? { ...e, data: { ...e.data, ...edgeStatus[e.id] } as WorkflowEdge["data"] } : e)),
+        edges: get().edges.map((e) =>
+          edgeStatus[e.id]
+            ? { ...e, className: EDGE_CLASS[edgeStatus[e.id]], data: { ...e.data, status: edgeStatus[e.id] } }
+            : e,
+        ),
       }),
+    resetRun: () =>
+      set({
+        runError: null,
+        nodes: get().nodes.map((n) => (n.data.status === "idle" && n.data.output === undefined && n.data.error === undefined ? n : { ...n, data: { ...n.data, status: "idle", output: undefined, error: undefined } })),
+        edges: get().edges.map((e) => (e.data?.status === "idle" && !e.className ? e : { ...e, className: undefined, data: { ...e.data, status: "idle" } })),
+      }),
+    run: async (options) => {
+      if (get().isRunning) return;
+      get().resetRun();
+      abortController = new AbortController();
+      set({ isRunning: true });
+      const apply = (event: ExecEvent) => {
+        const { patchRuntime } = get();
+        switch (event.type) {
+          case "node-status":
+            patchRuntime({
+              [event.nodeId]: {
+                status: event.status,
+                ...(event.output !== undefined && { output: event.output }),
+                ...(event.error !== undefined && { error: event.error }),
+              },
+            });
+            break;
+          case "node-output":
+            patchRuntime({ [event.nodeId]: { output: event.output } });
+            break;
+          case "edge-status":
+            patchRuntime({}, { [event.edgeId]: event.status });
+            break;
+          case "run-end":
+            set({ runError: event.status === "error" ? (event.error ?? "Run failed") : null });
+            break;
+        }
+      };
+      try {
+        const { status } = await runWorkflow({ nodes: get().nodes, edges: get().edges, onEvent: apply, signal: abortController.signal, speed: options?.speed });
+        // A cancelled run can leave edges mid-animation; settle everything back to idle.
+        if (status === "cancelled") get().resetRun();
+      } finally {
+        abortController = null;
+        set({ isRunning: false });
+      }
+    },
+    stop: () => abortController?.abort(),
     commit: () => record(),
     undo: () => jump("past"),
     redo: () => jump("future"),

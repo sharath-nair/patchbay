@@ -3,12 +3,14 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { Zap } from "lucide-react";
 import type { WorkflowNode } from "@/types/workflow";
 import { BaseNode } from "./BaseNode";
+import { NodeOutput } from "./NodeOutput";
 
 function TriggerNodeImpl({ data, selected }: NodeProps<WorkflowNode>) {
   return (
     <>
       <BaseNode icon={Zap} kindLabel="Trigger" accent="bg-violet-500" title={data.label} status={data.status} selected={selected}>
         Starts on: {String(data.triggerType ?? "manual")}
+        <NodeOutput status={data.status} error={data.error} />
       </BaseNode>
       <Handle type="source" position={Position.Right} />
     </>

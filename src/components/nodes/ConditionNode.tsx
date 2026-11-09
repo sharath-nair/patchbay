@@ -3,6 +3,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { GitBranch } from "lucide-react";
 import type { WorkflowNode } from "@/types/workflow";
 import { BaseNode } from "./BaseNode";
+import { NodeOutput } from "./NodeOutput";
 
 function ConditionNodeImpl({ data, selected }: NodeProps<WorkflowNode>) {
   return (
@@ -10,6 +11,7 @@ function ConditionNodeImpl({ data, selected }: NodeProps<WorkflowNode>) {
       <Handle type="target" position={Position.Left} />
       <BaseNode icon={GitBranch} kindLabel="Condition" accent="bg-orange-500" title={data.label} status={data.status} selected={selected}>
         <code>{String(data.expression ?? "") || "No expression"}</code>
+        <NodeOutput status={data.status} error={data.error} />
         <div className="mt-2 flex justify-between text-[10px] font-medium uppercase">
           <span className="text-emerald-600">true</span>
           <span className="text-red-500">false</span>

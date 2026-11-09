@@ -10,7 +10,7 @@ export function createSampleWorkflow(): { nodes: WorkflowNode[]; edges: Workflow
   condition.data = { ...condition.data, expression: "summary.length > 0" };
   const ok = createNode("output", { x: 940, y: 20 }, "output-ok");
   ok.data = { ...ok.data, label: "Publish summary" };
-  const fail = createNode("output", { x: 940, y: 220 }, "output-fail");
+  const fail = createNode("output", { x: 940, y: 340 }, "output-fail");
   fail.data = { ...fail.data, label: "Log failure" };
 
   const edge = (id: string, source: string, target: string, sourceHandle?: string): WorkflowEdge => ({

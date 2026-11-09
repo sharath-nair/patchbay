@@ -9,6 +9,7 @@ export interface BaseNodeData extends Record<string, unknown> {
   label: string;
   status: RunStatus;
   output?: string;
+  error?: string;
 }
 
 export type WorkflowNode = Node<BaseNodeData, NodeKind>;

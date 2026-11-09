@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { Redo2, Undo2 } from "lucide-react";
+import { Play, Redo2, RotateCcw, Square, Undo2 } from "lucide-react";
 import { WorkflowCanvas } from "@/components/canvas/WorkflowCanvas";
 import { useUndoRedoShortcuts } from "@/components/canvas/useUndoRedoShortcuts";
 import { NodePalette } from "@/components/sidebar/NodePalette";
@@ -17,6 +17,11 @@ export function Editor({ id }: { id: string }) {
   const redo = useWorkflowStore((s) => s.redo);
   const canUndo = useWorkflowStore(selectCanUndo);
   const canRedo = useWorkflowStore(selectCanRedo);
+  const isRunning = useWorkflowStore((s) => s.isRunning);
+  const runError = useWorkflowStore((s) => s.runError);
+  const run = useWorkflowStore((s) => s.run);
+  const stop = useWorkflowStore((s) => s.stop);
+  const resetRun = useWorkflowStore((s) => s.resetRun);
   useUndoRedoShortcuts();
 
   // M6 will load the saved workflow by id; for now every editor starts from the sample graph.
@@ -33,7 +38,25 @@ export function Editor({ id }: { id: string }) {
         </Link>
         <span className="font-medium">Patchbay</span>
         <span className="text-muted-foreground">/ {id}</span>
+        {runError && (
+          <span role="alert" className="ml-4 truncate text-xs text-red-500">
+            {runError}
+          </span>
+        )}
         <div className="ml-auto flex items-center gap-1">
+          {isRunning ? (
+            <Button size="sm" variant="destructive" onClick={stop}>
+              <Square className="size-3.5" /> Stop
+            </Button>
+          ) : (
+            <Button size="sm" onClick={() => void run()}>
+              <Play className="size-3.5" /> Run
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" onClick={resetRun} disabled={isRunning} aria-label="Reset run" title="Reset run">
+            <RotateCcw className="size-4" />
+          </Button>
+          <span className="bg-border mx-1 h-5 w-px" />
           <Button variant="ghost" size="icon" onClick={undo} disabled={!canUndo} aria-label="Undo" title="Undo (⌘Z)">
             <Undo2 className="size-4" />
           </Button>

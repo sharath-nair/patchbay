@@ -3,6 +3,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { Shuffle } from "lucide-react";
 import type { WorkflowNode } from "@/types/workflow";
 import { BaseNode } from "./BaseNode";
+import { NodeOutput } from "./NodeOutput";
 
 function TransformNodeImpl({ data, selected }: NodeProps<WorkflowNode>) {
   return (
@@ -10,6 +11,7 @@ function TransformNodeImpl({ data, selected }: NodeProps<WorkflowNode>) {
       <Handle type="target" position={Position.Left} />
       <BaseNode icon={Shuffle} kindLabel="Transform" accent="bg-teal-500" title={data.label} status={data.status} selected={selected}>
         <code className="line-clamp-2">{String(data.template ?? "") || "No template"}</code>
+        <NodeOutput status={data.status} output={data.output} error={data.error} />
       </BaseNode>
       <Handle type="source" position={Position.Right} />
     </>

@@ -1,12 +1,14 @@
 import type { ComponentType } from "react";
 import type { NodeProps, NodeTypes } from "@xyflow/react";
 import type { z } from "zod";
+import type { Executor } from "@/types/execution";
 import type { NodeKind, WorkflowNode } from "@/types/workflow";
 import { ConditionNode } from "./ConditionNode";
 import { OutputNode } from "./OutputNode";
 import { PromptNode } from "./PromptNode";
 import { TransformNode } from "./TransformNode";
 import { TriggerNode } from "./TriggerNode";
+import { executeCondition, executeOutput, executePrompt, executeTransform, executeTrigger } from "./executors";
 import { conditionSchema, outputSchema, promptSchema, transformSchema, triggerSchema } from "./schemas";
 
 export interface NodeDefinition {
@@ -18,6 +20,8 @@ export interface NodeDefinition {
   /** Default config for a freshly created node. Must satisfy `schema`. */
   defaults: Record<string, unknown>;
   component: ComponentType<NodeProps<WorkflowNode>>;
+  /** Simulated behaviour when the workflow runs. The engine only ever calls this. */
+  execute: Executor;
 }
 
 /**
@@ -33,6 +37,7 @@ export const nodeRegistry: Record<NodeKind, NodeDefinition> = {
     schema: triggerSchema,
     defaults: { label: "Trigger", triggerType: "manual" },
     component: TriggerNode,
+    execute: executeTrigger,
   },
   prompt: {
     kind: "prompt",
@@ -41,6 +46,7 @@ export const nodeRegistry: Record<NodeKind, NodeDefinition> = {
     schema: promptSchema,
     defaults: { label: "AI Prompt", model: "balanced", prompt: "", temperature: 0.7 },
     component: PromptNode,
+    execute: executePrompt,
   },
   condition: {
     kind: "condition",
@@ -49,6 +55,7 @@ export const nodeRegistry: Record<NodeKind, NodeDefinition> = {
     schema: conditionSchema,
     defaults: { label: "Condition", expression: "" },
     component: ConditionNode,
+    execute: executeCondition,
   },
   transform: {
     kind: "transform",
@@ -57,6 +64,7 @@ export const nodeRegistry: Record<NodeKind, NodeDefinition> = {
     schema: transformSchema,
     defaults: { label: "Transform", template: "" },
     component: TransformNode,
+    execute: executeTransform,
   },
   output: {
     kind: "output",
@@ -65,6 +73,7 @@ export const nodeRegistry: Record<NodeKind, NodeDefinition> = {
     schema: outputSchema,
     defaults: { label: "Output", format: "text" },
     component: OutputNode,
+    execute: executeOutput,
   },
 };
 

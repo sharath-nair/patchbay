@@ -128,3 +128,28 @@
     @apply font-sans;
   }
 }
+/* Execution animation: dashes travel along an edge while data is "in flight". */
+@keyframes patchbay-dash {
+  to {
+    stroke-dashoffset: -14;
+  }
+}
+.react-flow__edge.edge-running .react-flow__edge-path {
+  stroke: #f59e0b;
+  stroke-width: 2.5;
+  stroke-dasharray: 8 6;
+  animation: patchbay-dash 0.5s linear infinite;
+}
+.react-flow__edge.edge-success .react-flow__edge-path {
+  stroke: #10b981;
+  stroke-width: 2;
+}
+.react-flow__edge.edge-error .react-flow__edge-path {
+  stroke: #ef4444;
+  stroke-width: 2;
+}
+@media (prefers-reduced-motion: reduce) {
+  .react-flow__edge.edge-running .react-flow__edge-path {
+    animation: none;
+  }
+}
