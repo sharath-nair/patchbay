@@ -20,7 +20,7 @@ A node-based AI workflow builder. Wire up triggers, prompts, routers and outputs
 - [x] M0: Scaffold, folder structure, core types
 - [x] M1: Canvas and node registry
 - [x] M2: Zustand store with per-node selectors
-- [ ] M3: Schema-driven property editor
+- [x] M3: Schema-driven property editor
 - [ ] M4: Undo/redo history
 - [ ] M5: Simulated execution engine
 - [ ] M6: Persistence, dashboard, import/export

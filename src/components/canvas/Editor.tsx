@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { WorkflowCanvas } from "@/components/canvas/WorkflowCanvas";
 import { NodePalette } from "@/components/sidebar/NodePalette";
+import { PropertyEditor } from "@/components/sidebar/PropertyEditor";
 import { useWorkflowStore } from "@/store/useWorkflowStore";
 import { createSampleWorkflow } from "@/utils/sampleWorkflow";
 
@@ -30,6 +31,7 @@ export function Editor({ id }: { id: string }) {
         <div className="min-w-0 flex-1">
           <WorkflowCanvas />
         </div>
+        <PropertyEditor />
       </div>
     </div>
   );
