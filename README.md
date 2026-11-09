@@ -18,7 +18,7 @@ A node-based AI workflow builder. Wire up triggers, prompts, routers and outputs
 ## Roadmap
 
 - [x] M0: Scaffold, folder structure, core types
-- [ ] M1: Canvas and node registry
+- [x] M1: Canvas and node registry
 - [ ] M2: Zustand store with per-node selectors
 - [ ] M3: Schema-driven property editor
 - [ ] M4: Undo/redo history
